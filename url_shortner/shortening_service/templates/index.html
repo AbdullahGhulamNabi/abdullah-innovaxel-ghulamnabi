@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Shortener Service</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        label {
+            font-size: 1rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e6ffed;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .error {
+            background: #ffe6e6;
+            color: #dc3545;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 URL Shortener Service</h1>
+
+    <!-- Create Short URL -->
+    <form method="POST" action="{% url 'create_short_url' %}" id="url-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="url">Enter URL</label>
+            <input type="url" name="url" class="form-control" id="url" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Generate Short URL</button>
+    </form>
+
+    <!-- Retrieve Original URL -->
+    <form id="retrieve-form">
+        <label>Enter Short Code to Retrieve:</label>
+        <input type="text" id="retrieve-code" required>
+        <button type="submit">Retrieve Original URL</button>
+    </form>
+
+    <!-- Update Short URL -->
+    <form id="update-form">
+        <label>Enter Short Code to Update:</label>
+        <input type="text" id="update-code" required>
+        <label>New Original URL:</label>
+        <input type="url" id="update-url" required>
+        <button type="submit">Update URL</button>
+    </form>
+
+    <!-- Delete Short URL -->
+    <form id="delete-form">
+        <label>Enter Short Code to Delete:</label>
+        <input type="text" id="delete-code" required>
+        <button type="submit">Delete URL</button>
+    </form>
+
+    <!-- Get Statistics -->
+    <form id="stats-form">
+        <label>Enter Short Code for Stats:</label>
+        <input type="text" id="stats-code" required>
+        <button type="submit">Get Stats</button>
+    </form>
+
+    <div id="result" style="display:none;"></div>
+
+    <script>
+        const result = document.getElementById('result');
+
+        function showResult(message, isError = false) {
+            result.textContent = message;
+            result.classList.toggle('error', isError);
+            result.style.display = 'block';
+        }
+
+        document.getElementById('url-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            {% comment %} const url = document.getElementById('url').value;
+            const res = await fetch('create/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url }),
+            });
+            const data = await res.json();
+            showResult(res.ok ? `Short URL: ${window.location.origin}/${data.shortCode}` : `Error: ${data.detail || 'Failed'}`, !res.ok); {% endcomment %}
+        });
+
+        document.getElementById('retrieve-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const code = document.getElementById('retrieve-code').value;
+            const res = await fetch(`/api/shorten/${code}/`);
+            const data = await res.json();
+            showResult(res.ok ? `Original URL: ${data.url}` : `Error: ${data.detail || 'Not found'}`, !res.ok);
+        });
+
+        document.getElementById('update-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const code = document.getElementById('update-code').value;
+            const newUrl = document.getElementById('update-url').value;
+            const res = await fetch(`/api/shorten/${code}/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: newUrl }),
+            });
+            const data = await res.json();
+            showResult(res.ok ? `Updated to: ${data.url}` : `Error: ${data.detail || 'Update failed'}`, !res.ok);
+        });
+
+        document.getElementById('delete-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const code = document.getElementById('delete-code').value;
+            const res = await fetch(`/api/shorten/${code}/`, { method: 'DELETE' });
+            showResult(res.ok ? `Deleted successfully` : `Error: Failed to delete`, !res.ok);
+        });
+
+        document.getElementById('stats-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const code = document.getElementById('stats-code').value;
+            const res = await fetch(`/api/shorten/${code}/stats/`);
+            const data = await res.json();
+            showResult(res.ok ? `Access Count: ${data.accessCount}` : `Error: ${data.detail || 'No stats found'}`, !res.ok);
+        });
+    </script>
+</body>
+</html>
