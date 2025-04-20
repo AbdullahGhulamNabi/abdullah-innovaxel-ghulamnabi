@@ -57,7 +57,7 @@
             background-color: #0056b3;
         }
 
-        #create-result, #get-result {
+        #create-result, #get-result, #update-result {
             margin-top: 10px;
             margin-bottom: 10px;
             padding: 10px;
@@ -195,6 +195,35 @@
                 resultDiv.innerText = data.message || 'Error retrieving original URL';
             }
         });
+
+        document.getElementById("update-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const shortCode = document.getElementById("update-code").value;
+            const updatedUrl = document.getElementById("update-url").value;
+        
+            const response = await fetch(`/shorten/${shortCode}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken 
+                },
+                body: JSON.stringify({ url: updatedUrl })
+            });
+        
+            const resultDiv = document.getElementById("update-result");
+            const data = await response.json();
+        
+            if (response.ok) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = '';
+                resultDiv.innerText = `Updated URL: ${data.url}`;
+            } else {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerText = data.message || 'Error updating URL';
+            }
+        });
+        
         
     </script>
     

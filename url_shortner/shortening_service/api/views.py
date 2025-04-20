@@ -46,6 +46,27 @@ class ShortURLAPIView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+    
+    def put(self, request, pk):
+        new_url = request.data.get("url")
+        try:
+            shortened_url = ShortenedURL.objects.get(shortCode=pk)
+        except ShortenedURL.DoesNotExist:
+            return Response({'message': 'Short code does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+        shortened_url.url = new_url
+        shortened_url.updatedAt = timezone.now()
+        shortened_url.save()
+
+        response_data = {
+            "id": shortened_url.id,
+            "url": shortened_url.url,
+            "shortCode": shortened_url.shortCode,
+            "createdAt": shortened_url.createdAt.isoformat(),
+            "updatedAt": shortened_url.updatedAt.isoformat()
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 class RedirectToOriginalURL(APIView):
     def get(self, request, pk):
