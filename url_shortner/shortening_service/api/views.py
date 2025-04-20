@@ -10,13 +10,13 @@ from rest_framework.views import APIView
 def shortener_page(request):
     return render(request, 'index.html')  
 
-class CreateShortURL(APIView):
+class ShortURLAPIView(APIView):
 
     def post(self, request):
         original_url = request.data.get('url')
         
         if not original_url:
-            return Response({"detail": "URL is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "URL is required"}, status=status.HTTP_400_BAD_REQUEST)
     
         short_code = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
         shortened_url = ShortenedURL.objects.create(url=original_url, shortCode=short_code, createdAt=timezone.now(), updatedAt=timezone.now())
@@ -30,8 +30,6 @@ class CreateShortURL(APIView):
         }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
-
-class RetrieveShortURL(APIView):
 
     def get(self, request, pk):
         try:
