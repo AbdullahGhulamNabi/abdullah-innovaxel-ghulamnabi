@@ -1,5 +1,5 @@
 from django.shortcuts import render
-# from django.http import HttpResponse
+from django.shortcuts import redirect
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
@@ -49,17 +49,10 @@ class RetrieveShortURL(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-# def create_short_url(request):
-#     if request.method == "POST":
-
-#         original_url = request.POST.get('url')
-#         short_code   = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-#         short_url    = ShortenedURL.objects.create(url=original_url, shortCode=short_code)
-
-#         # return render(request, 'index.html', {
-#         #     'short_url': f"{request.get_host()}/{short_url.shortCode}",
-#         #     'original_url': original_url
-#         # })
-#         return render(request, 'index.html',{'short_code': short_code})
-
-#     return render(request, 'index.html')
+class RedirectToOriginalURL(APIView):
+    def get(self, request, pk):
+        try:
+            shortened_url = ShortenedURL.objects.get(shortCode=pk)
+            return redirect(shortened_url.url)
+        except ShortenedURL.DoesNotExist:
+            return Response({'message': 'Short code does not exist'}, status=status.HTTP_404_NOT_FOUND)
