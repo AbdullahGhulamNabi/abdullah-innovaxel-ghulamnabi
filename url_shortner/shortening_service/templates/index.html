@@ -57,7 +57,7 @@
             background-color: #0056b3;
         }
 
-        #result {
+        #create-result, #get-result {
             margin-top: 10px;
             margin-bottom: 10px;
             padding: 10px;
@@ -89,13 +89,14 @@
         <input type="url" name="url" id="url" required>
         <button type="submit">Generate Short URL</button>
     </form>
-    <div id="result"></div>
-
+    <div id="create-result"></div>
+    
     <form id="retrieve-form">
         <label>Enter Short Code to Retrieve:</label>
         <input type="text" id="retrieve-code" required>
         <button type="submit">Retrieve Original URL</button>
     </form>
+    <div id="get-result"></div>
 
     <form id="update-form">
         <label>Enter Short Code to Update:</label>
@@ -104,18 +105,24 @@
         <input type="url" id="update-url" required>
         <button type="submit">Update URL</button>
     </form>
+    <div id="update-result"></div>
+
 
     <form id="delete-form">
         <label>Enter Short Code to Delete:</label>
         <input type="text" id="delete-code" required>
         <button type="submit">Delete URL</button>
     </form>
+    <div id="delete-result"></div>
+
 
     <form id="stats-form">
         <label>Enter Short Code for Stats:</label>
         <input type="text" id="stats-code" required>
         <button type="submit">Get Stats</button>
     </form>
+    <div id="stats-result"></div>
+
 
     <div id="result" style="display:none;"></div>
 
@@ -140,7 +147,7 @@
         document.getElementById("create-form").addEventListener("submit", async function(e) {
             e.preventDefault();
             const url = document.getElementById("url").value;
-            const response = await fetch('/create/', {
+            const response = await fetch('/shorten/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -149,7 +156,7 @@
                 body: JSON.stringify({ url: url })
             });
     
-            const resultDiv = document.getElementById("result");
+            const resultDiv = document.getElementById("create-result");
             const data = await response.json();
     
             if (response.ok) {
@@ -167,7 +174,7 @@
             e.preventDefault();
             const shortCode = document.getElementById("retrieve-code").value;
         
-            const response = await fetch(`/retreive/${shortCode}/`, {
+            const response = await fetch(`/shorten/${shortCode}/`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -175,7 +182,7 @@
                 }
             });
         
-            const resultDiv = document.getElementById("result");
+            const resultDiv = document.getElementById("get-result");
             const data = await response.json();
         
             if (response.ok) {
