@@ -2,5 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path('create/', create_short_url, name='create_short_url'),  # Correct path for 'create'
+    path('', shortener_page, name='shortener_page'),
+    path('create/', CreateShortURL.as_view(), name='create_short_url'),  
+    path('retreive/<str:pk>/', RetrieveShortURL.as_view(), name='create_short_url'),  
 ]
