@@ -57,7 +57,7 @@
             background-color: #0056b3;
         }
 
-        #create-result, #get-result, #update-result {
+        #create-result, #get-result, #update-result , #delete-result, #stats-result{
             margin-top: 10px;
             margin-bottom: 10px;
             padding: 10px;
@@ -221,6 +221,32 @@
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'error';
                 resultDiv.innerText = data.message || 'Error updating URL';
+            }
+        });
+
+        document.getElementById("delete-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const shortCode = document.getElementById("delete-code").value;
+        
+            const response = await fetch(`/shorten/${shortCode}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken 
+                },
+            });
+        
+            const resultDiv = document.getElementById("delete-result");
+            if (response.status === 204) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = '';
+                resultDiv.innerText = 'Short code deleted successfully';
+                
+            } else {
+                const data = await response.json();
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerText = data.message || 'Error Deleting URL';
             }
         });
         

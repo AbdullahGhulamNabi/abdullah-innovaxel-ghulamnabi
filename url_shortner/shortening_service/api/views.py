@@ -68,6 +68,16 @@ class ShortURLAPIView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    def delete(self, request, pk):
+        try:
+            shortened_url = ShortenedURL.objects.get(shortCode=pk)
+        except ShortenedURL.DoesNotExist:
+            return Response({'message': 'Short code does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+        shortened_url.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 class RedirectToOriginalURL(APIView):
     def get(self, request, pk):
         try:
