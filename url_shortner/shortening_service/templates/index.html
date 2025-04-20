@@ -59,6 +59,7 @@
 
         #result {
             margin-top: 10px;
+            margin-bottom: 10px;
             padding: 10px;
             background: #e6ffed;
             border-radius: 8px;
@@ -80,25 +81,22 @@
 </head>
 <body>
     <h1>🔗 URL Shortener Service</h1>
-
-    <!-- Create Short URL -->
-    <form method="POST" action="{% url 'create_short_url' %}" id="url-form">
+    
+    <form id="create-form">
         {% csrf_token %}
-        <div class="form-group">
-            <label for="url">Enter URL</label>
-            <input type="url" name="url" class="form-control" id="url" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Generate Short URL</button>
-    </form>
 
-    <!-- Retrieve Original URL -->
+        <label for="url">Enter URL</label>
+        <input type="url" name="url" id="url" required>
+        <button type="submit">Generate Short URL</button>
+    </form>
+    <div id="result"></div>
+
     <form id="retrieve-form">
         <label>Enter Short Code to Retrieve:</label>
         <input type="text" id="retrieve-code" required>
         <button type="submit">Retrieve Original URL</button>
     </form>
 
-    <!-- Update Short URL -->
     <form id="update-form">
         <label>Enter Short Code to Update:</label>
         <input type="text" id="update-code" required>
@@ -107,14 +105,12 @@
         <button type="submit">Update URL</button>
     </form>
 
-    <!-- Delete Short URL -->
     <form id="delete-form">
         <label>Enter Short Code to Delete:</label>
         <input type="text" id="delete-code" required>
         <button type="submit">Delete URL</button>
     </form>
 
-    <!-- Get Statistics -->
     <form id="stats-form">
         <label>Enter Short Code for Stats:</label>
         <input type="text" id="stats-code" required>
@@ -124,61 +120,77 @@
     <div id="result" style="display:none;"></div>
 
     <script>
-        const result = document.getElementById('result');
-
-        function showResult(message, isError = false) {
-            result.textContent = message;
-            result.classList.toggle('error', isError);
-            result.style.display = 'block';
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
-
-        document.getElementById('url-form').addEventListener('submit', async function (e) {
+    
+        const csrftoken = getCookie('csrftoken');
+    
+        document.getElementById("create-form").addEventListener("submit", async function(e) {
             e.preventDefault();
-            {% comment %} const url = document.getElementById('url').value;
-            const res = await fetch('create/', {
+            const url = document.getElementById("url").value;
+            const response = await fetch('/create/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken 
+                },
+                body: JSON.stringify({ url: url })
             });
-            const data = await res.json();
-            showResult(res.ok ? `Short URL: ${window.location.origin}/${data.shortCode}` : `Error: ${data.detail || 'Failed'}`, !res.ok); {% endcomment %}
+    
+            const resultDiv = document.getElementById("result");
+            const data = await response.json();
+    
+            if (response.ok) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = '';
+                resultDiv.innerText = `Short URL: ${window.location.origin}/${data.shortCode}`;
+            } else {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerText = data.detail || 'Error creating short URL';
+            }
         });
 
-        document.getElementById('retrieve-form').addEventListener('submit', async function (e) {
+        document.getElementById("retrieve-form").addEventListener("submit", async function(e) {
             e.preventDefault();
-            const code = document.getElementById('retrieve-code').value;
-            const res = await fetch(`/api/shorten/${code}/`);
-            const data = await res.json();
-            showResult(res.ok ? `Original URL: ${data.url}` : `Error: ${data.detail || 'Not found'}`, !res.ok);
-        });
-
-        document.getElementById('update-form').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const code = document.getElementById('update-code').value;
-            const newUrl = document.getElementById('update-url').value;
-            const res = await fetch(`/api/shorten/${code}/`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: newUrl }),
+            const shortCode = document.getElementById("retrieve-code").value;
+        
+            const response = await fetch(`/retreive/${shortCode}/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken 
+                }
             });
-            const data = await res.json();
-            showResult(res.ok ? `Updated to: ${data.url}` : `Error: ${data.detail || 'Update failed'}`, !res.ok);
+        
+            const resultDiv = document.getElementById("result");
+            const data = await response.json();
+        
+            if (response.ok) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = '';
+                resultDiv.innerText = `Original URL: ${data.url}`;
+            } else {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerText = data.message || 'Error retrieving original URL';
+            }
         });
-
-        document.getElementById('delete-form').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const code = document.getElementById('delete-code').value;
-            const res = await fetch(`/api/shorten/${code}/`, { method: 'DELETE' });
-            showResult(res.ok ? `Deleted successfully` : `Error: Failed to delete`, !res.ok);
-        });
-
-        document.getElementById('stats-form').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const code = document.getElementById('stats-code').value;
-            const res = await fetch(`/api/shorten/${code}/stats/`);
-            const data = await res.json();
-            showResult(res.ok ? `Access Count: ${data.accessCount}` : `Error: ${data.detail || 'No stats found'}`, !res.ok);
-        });
+        
     </script>
+    
+        
 </body>
 </html>
