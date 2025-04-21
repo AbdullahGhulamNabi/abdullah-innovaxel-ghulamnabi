@@ -45,7 +45,10 @@ class ShortURLAPIView(APIView):
         '''
 
         try:
-            shortened_url = ShortenedURL.objects.get(shortCode=pk)      
+            shortened_url = ShortenedURL.objects.get(shortCode=pk)  
+            shortened_url.accessCount += 1
+            shortened_url.save() 
+            
             serializer = ShortenedURLSerializer(shortened_url)
             return Response(serializer.data, status=status.HTTP_200_OK)
         
