@@ -166,7 +166,7 @@
             } else {
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'error';
-                resultDiv.innerText = data.detail || 'Error creating short URL';
+                resultDiv.innerText = data.url || data.message || 'Error creating short URL';
             }
         });
 
