@@ -264,6 +264,8 @@
         
             const resultDiv = document.getElementById("stats-result");
             const data = await response.json();
+
+            {% comment %} resultDiv.innerHTML = data.message {% endcomment %}
         
 
             if (response.ok) {
@@ -277,7 +279,6 @@
                 `;            
             }
             else {
-                const data = await response.json();
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'error';
                 resultDiv.innerText = data.message || 'Error showing stats';

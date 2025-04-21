@@ -35,7 +35,7 @@ class ShortURLAPIView(APIView):
         try:
             shortened_url = ShortenedURL.objects.get(shortCode=pk)
         except ShortenedURL.DoesNotExist:
-            return Response({'message ':'Short code does not exists'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message':'Short code does not exists'}, status=status.HTTP_404_NOT_FOUND)
         
         response_data = {
             "id": shortened_url.id,
@@ -101,6 +101,6 @@ class RedirectToOriginalURL(APIView):
     def get(self, request, pk):
         try:
             shortened_url = ShortenedURL.objects.get(shortCode=pk)
-            return redirect(shortened_url.url)
+            return redirect(shortened_url.url, permanent=True)
         except ShortenedURL.DoesNotExist:
             return Response({'message': 'Short code does not exist'}, status=status.HTTP_404_NOT_FOUND)
